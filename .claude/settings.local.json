@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m venv:*)",
+      "Bash(.venvScriptspython.exe -m pip install --upgrade pip)",
+      "Bash(.venvScriptspython.exe -m pip install marker-pdf)",
+      "Bash(\".venv/Scripts/python.exe\" -m pip install --upgrade pip)",
+      "Bash(\".venv/Scripts/python.exe\" -m pip install marker-pdf)",
+      "Bash(\".venv/Scripts/python.exe\" -m pip install marker-pdf[full])",
+      "Bash(\".venv/Scripts/marker.exe\" --help)",
+      "Bash(\".venv/Scripts/python.exe\" -m pip install psutil)",
+      "Bash(\".venv/Scripts/marker.exe\" \"input/the-art-of-spending-money.epub\" --output_dir output --output_format markdown)",
+      "Bash(\".venv/Scripts/python.exe\" convert_epub.py)",
+      "Bash(python convert_epub.py:*)",
+      "Bash(.venvScriptspython.exe convert_epub.py)",
+      "Bash(\".venv/Scripts/pip.exe\" list)",
+      "Bash(\".venv/Scripts/python.exe\" convert_pdfs.py)",
+      "Bash(dir)"
+    ]
+  }
+}
