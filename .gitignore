@@ -64,7 +64,7 @@ Desktop.ini
 # Project specific
 output/
 backup_epub/
-*.pdf
+
 *.epub
 *.md
 !README.md
