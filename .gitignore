@@ -62,7 +62,6 @@ Thumbs.db
 Desktop.ini
 
 # Project specific
-input/
 output/
 backup_epub/
 *.pdf
