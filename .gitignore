@@ -62,9 +62,8 @@ Thumbs.db
 Desktop.ini
 
 # Project specific
-output/
 backup_epub/
 
 *.epub
-*.md
+
 !README.md
