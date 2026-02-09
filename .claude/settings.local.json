@@ -18,7 +18,8 @@
       "Bash(dir)",
       "Bash(.venv/Scripts/python.exe:*)",
       "Bash(.venv/Scripts/pip install:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(pip install:*)"
     ]
   }
 }
