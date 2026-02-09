@@ -15,7 +15,10 @@
       "Bash(.venvScriptspython.exe convert_epub.py)",
       "Bash(\".venv/Scripts/pip.exe\" list)",
       "Bash(\".venv/Scripts/python.exe\" convert_pdfs.py)",
-      "Bash(dir)"
+      "Bash(dir)",
+      "Bash(.venv/Scripts/python.exe:*)",
+      "Bash(.venv/Scripts/pip install:*)",
+      "Bash(ls:*)"
     ]
   }
 }

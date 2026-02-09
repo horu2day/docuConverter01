@@ -63,6 +63,8 @@ Desktop.ini
 
 # Project specific
 backup_epub/
+input/
+output/
 
 *.epub
 
