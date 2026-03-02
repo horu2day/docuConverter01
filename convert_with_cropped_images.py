@@ -118,6 +118,14 @@ def convert_pdf_with_cropped_images(pdf_path: str, output_dir: str = "output"):
         # Extract text
         text, metadata, marker_images = text_from_rendered(rendered)
 
+        # Fix image paths: prepend {base_name}_images/ folder to image references
+        import re
+        text = re.sub(
+            r'!\[([^\]]*)\]\(([^/)][^)]*)\)',
+            rf'![\1]({base_name}_images/\2)',
+            text
+        )
+
         # Save markdown
         output_path = os.path.join(output_dir, f"{base_name}.md")
         with open(output_path, "w", encoding="utf-8") as f:
