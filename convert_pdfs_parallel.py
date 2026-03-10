@@ -139,6 +139,11 @@ def convert_all_pdfs_parallel(input_dir: str = "input", output_dir: str = "outpu
 
 
 if __name__ == "__main__":
-    # You can adjust max_workers here (None = auto-detect, or specify a number like 4)
-    # Reduced to 2-3 workers to avoid memory issues with large PDFs
-    convert_all_pdfs_parallel(max_workers=2)
+    import argparse
+    parser = argparse.ArgumentParser(description="Parallel PDF to Markdown converter")
+    parser.add_argument("--input_dir", default="input", help="Input directory containing PDF files")
+    parser.add_argument("--output_dir", default="output", help="Output directory for markdown files")
+    parser.add_argument("--workers", type=int, default=2, help="Number of parallel workers (default: 2)")
+    args = parser.parse_args()
+
+    convert_all_pdfs_parallel(args.input_dir, args.output_dir, args.workers)

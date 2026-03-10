@@ -3,6 +3,7 @@
 Fast PDF to Markdown converter - optimized for text-heavy documents
 """
 
+import argparse
 import os
 import glob
 from pathlib import Path
@@ -12,13 +13,14 @@ from marker.output import text_from_rendered
 from marker.config.parser import ConfigParser
 
 
-def convert_pdf_to_markdown_fast(pdf_path: str, output_dir: str = "output"):
+def convert_pdf_to_markdown_fast(pdf_path: str, output_dir: str = "output", languages: str = None):
     """
     Convert PDF file to Markdown with speed optimizations for text-heavy documents
 
     Args:
         pdf_path: Path to the PDF file
         output_dir: Directory to save the output (default: "output")
+        languages: Comma-separated language codes for OCR (e.g. "ko", "ko,en")
     """
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
@@ -28,6 +30,8 @@ def convert_pdf_to_markdown_fast(pdf_path: str, output_dir: str = "output"):
     base_name = pdf_file.stem
 
     print(f"\nConverting {pdf_file.name} to Markdown...")
+    if languages:
+        print(f"  Languages: {languages}")
 
     try:
         # Configure for speed - text-focused processing
@@ -36,6 +40,9 @@ def convert_pdf_to_markdown_fast(pdf_path: str, output_dir: str = "output"):
             # Disable image extraction for speed (images won't be saved separately)
             # "disable_image_extraction": True,  # Uncomment if you want to skip all images
         }
+
+        if languages:
+            config["languages"] = languages.split(",")
 
         config_parser = ConfigParser(config)
 
@@ -60,17 +67,15 @@ def convert_pdf_to_markdown_fast(pdf_path: str, output_dir: str = "output"):
 
         print(f"  OK Output saved to: {output_path}")
 
-        # Save images if any (skip to save time)
+        # Save images
         if images:
-            print(f"  INFO: {len(images)} images found (not saved for speed)")
-            # Uncomment below to save images
-            # images_dir = os.path.join(output_dir, f"{base_name}_images")
-            # os.makedirs(images_dir, exist_ok=True)
-            # for img_name, img_data in images.items():
-            #     img_path = os.path.join(images_dir, img_name)
-            #     with open(img_path, "wb") as f:
-            #         f.write(img_data)
-            # print(f"  OK {len(images)} images saved to: {images_dir}")
+            images_dir = os.path.join(output_dir, f"{base_name}_images")
+            os.makedirs(images_dir, exist_ok=True)
+            for img_name, img_data in images.items():
+                img_path = os.path.join(images_dir, img_name)
+                with open(img_path, "wb") as f:
+                    f.write(img_data)
+            print(f"  OK {len(images)} images saved to: {images_dir}")
 
         # Skip metadata saving for speed
         # if metadata:
@@ -87,13 +92,14 @@ def convert_pdf_to_markdown_fast(pdf_path: str, output_dir: str = "output"):
         return (False, pdf_file.name)
 
 
-def convert_all_pdfs_fast(input_dir: str = "input", output_dir: str = "output"):
+def convert_all_pdfs_fast(input_dir: str = "input", output_dir: str = "output", languages: str = None):
     """
     Convert all PDF files in the input directory to Markdown (sequential, memory-safe)
 
     Args:
         input_dir: Directory containing PDF files
         output_dir: Directory to save the output
+        languages: Comma-separated language codes for OCR (e.g. "ko", "ko,en")
     """
     # Find all PDF files
     pdf_pattern = os.path.join(input_dir, "*.pdf")
@@ -105,6 +111,8 @@ def convert_all_pdfs_fast(input_dir: str = "input", output_dir: str = "output"):
 
     print(f"Found {len(pdf_files)} PDF files to convert")
     print("Mode: FAST (text-focused, sequential processing)")
+    if languages:
+        print(f"Languages: {languages}")
     print("=" * 60)
 
     successful = 0
@@ -113,7 +121,7 @@ def convert_all_pdfs_fast(input_dir: str = "input", output_dir: str = "output"):
 
     for i, pdf_file in enumerate(pdf_files, 1):
         print(f"\n[{i}/{len(pdf_files)}]", end=" ")
-        success, filename = convert_pdf_to_markdown_fast(pdf_file, output_dir)
+        success, filename = convert_pdf_to_markdown_fast(pdf_file, output_dir, languages)
         if success:
             successful += 1
         else:
@@ -133,4 +141,10 @@ def convert_all_pdfs_fast(input_dir: str = "input", output_dir: str = "output"):
 
 
 if __name__ == "__main__":
-    convert_all_pdfs_fast()
+    parser = argparse.ArgumentParser(description="Fast PDF to Markdown converter")
+    parser.add_argument("--input_dir", default="input", help="Input directory containing PDF files")
+    parser.add_argument("--output_dir", default="output", help="Output directory for markdown files")
+    parser.add_argument("--languages", default=None, help="Comma-separated language codes for OCR (e.g. ko, ko,en)")
+    args = parser.parse_args()
+
+    convert_all_pdfs_fast(args.input_dir, args.output_dir, args.languages)
