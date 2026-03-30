@@ -65,7 +65,20 @@ Desktop.ini
 backup_epub/
 input/
 output/
+back/
 
+# Large binary files
 *.epub
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.tiff
+*.zip
+*.tar
+*.tar.gz
+*.rar
 
 !README.md
