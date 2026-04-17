@@ -5,6 +5,10 @@ docuConverter — 문서 → Markdown 변환 도구 모음
 지원 포맷:
   PDF  → Markdown  (marker-pdf 기반, 이미지 유/무 선택)
   EPUB → Markdown  (ebooklib + BeautifulSoup 기반)
+  HWP  → Markdown  (COM 자동화 → pyhwp 폴백)
+  HWPX → Markdown  (ZIP+XML 직접 파싱)
+  HML  → Markdown  (XML 직접 파싱)
+  HTML → Markdown  (markdownify 기반)
 
 시나리오:
   1. PDF 단일 변환 (이미지 포함, 고품질)
@@ -14,9 +18,11 @@ docuConverter — 문서 → Markdown 변환 도구 모음
   5. PDF 배치 변환 (병렬 처리, 멀티코어)
   6. EPUB 단일 변환
   7. EPUB 배치 변환
-  8. 이미지만 추출 (PDF → 이미지 파일)
-  9. Markdown 병합 (output/ 폴더의 .md 파일들을 하나로)
- 10. 이미지 경로 업데이트 (Markdown 내 이미지 링크 재연결)
+  8. HWP / HWPX / HML 변환 (한글 문서)
+  9. HTML 배치 변환 (input/ 폴더)
+ 10. 이미지만 추출 (PDF → 이미지 파일)
+ 11. Markdown 병합 (output/ 폴더의 .md 파일들을 하나로)
+ 12. 이미지 경로 업데이트 (Markdown 내 이미지 링크 재연결)
 """
 
 import os
@@ -138,6 +144,34 @@ def scenario_epub_batch():
     print(f"Conversion complete! Successful: {successful}, Failed: {failed}")
 
 
+def scenario_hwp():
+    """HWP / HWPX / HML → Markdown 변환"""
+    from convert import convert_file, convert_all, SUPPORTED
+
+    mode = input("모드 — [1] 단일 파일  [2] input/ 폴더 전체: ").strip()
+    output_dir = Path(input("출력 폴더 [기본: output]: ").strip() or "output")
+
+    if mode == "1":
+        file_path = input(f"파일 경로 ({', '.join(SUPPORTED)}): ").strip()
+        if not file_path:
+            print("ERROR: 경로가 비어 있습니다.")
+            return
+        output_dir.mkdir(parents=True, exist_ok=True)
+        convert_file(Path(file_path), output_dir)
+    else:
+        input_dir = Path(input("입력 폴더 [기본: input]: ").strip() or "input")
+        convert_all(input_dir, output_dir)
+
+
+def scenario_html():
+    """HTML → Markdown 배치 변환 (input/ 폴더)"""
+    from html_to_md import clean_html_to_md
+
+    input_dir  = input("HTML 폴더 [기본: input]: ").strip() or "input"
+    output_dir = input("출력 폴더 [기본: output]: ").strip() or "output"
+    clean_html_to_md(input_dir, output_dir)
+
+
 def scenario_extract_images():
     """PDF에서 이미지만 추출 (Markdown 변환 없음)"""
     from extract_images import extract_all_images, extract_images_from_pdf
@@ -178,16 +212,18 @@ def scenario_update_image_paths():
 # ─── 메뉴 ────────────────────────────────────────────────────────────────────
 
 SCENARIOS = [
-    ("PDF 단일 변환 (이미지 포함, 고품질)",        scenario_pdf_single_with_images),
-    ("PDF 단일 변환 (텍스트 전용, 빠름)",          scenario_pdf_single_fast),
-    ("PDF 배치 변환 (이미지 포함, 순차)",          scenario_pdf_batch_with_images),
-    ("PDF 배치 변환 (텍스트 전용, 순차, 빠름)",    scenario_pdf_batch_fast),
-    ("PDF 배치 변환 (병렬 처리, 멀티코어)",        scenario_pdf_batch_parallel),
-    ("EPUB 단일 변환 → Markdown",                 scenario_epub_single),
-    ("EPUB 배치 변환 (input/ 폴더 전체)",          scenario_epub_batch),
-    ("이미지만 추출 (PDF → 이미지 파일)",          scenario_extract_images),
-    ("Markdown 파일 병합 (여러 .md → 하나로)",     scenario_merge_markdown),
-    ("이미지 경로 업데이트 (Markdown 링크 수정)",  scenario_update_image_paths),
+    ("PDF 단일 변환 (이미지 포함, 고품질)",            scenario_pdf_single_with_images),
+    ("PDF 단일 변환 (텍스트 전용, 빠름)",              scenario_pdf_single_fast),
+    ("PDF 배치 변환 (이미지 포함, 순차)",              scenario_pdf_batch_with_images),
+    ("PDF 배치 변환 (텍스트 전용, 순차, 빠름)",        scenario_pdf_batch_fast),
+    ("PDF 배치 변환 (병렬 처리, 멀티코어)",            scenario_pdf_batch_parallel),
+    ("EPUB 단일 변환 → Markdown",                     scenario_epub_single),
+    ("EPUB 배치 변환 (input/ 폴더 전체)",              scenario_epub_batch),
+    ("HWP / HWPX / HML → Markdown (한글 문서)",       scenario_hwp),
+    ("HTML → Markdown 배치 변환 (input/ 폴더)",        scenario_html),
+    ("이미지만 추출 (PDF → 이미지 파일)",              scenario_extract_images),
+    ("Markdown 파일 병합 (여러 .md → 하나로)",         scenario_merge_markdown),
+    ("이미지 경로 업데이트 (Markdown 링크 수정)",      scenario_update_image_paths),
 ]
 
 
@@ -301,19 +337,35 @@ def run_cli(args):
             print(f"\n→ {Path(ep).name}")
             convert_epub_to_markdown(ep, out)
 
-    elif idx == 7:  # 이미지 추출
+    elif idx == 7:  # HWP/HWPX/HML
+        from convert import convert_file, convert_all, SUPPORTED
+        if extra:
+            out = Path(extra[-1]) if len(extra) > 1 else Path("output")
+            out.mkdir(parents=True, exist_ok=True)
+            for f in extra[:-1] if len(extra) > 1 else extra:
+                convert_file(Path(f), out)
+        else:
+            convert_all(Path("input"), Path("output"))
+
+    elif idx == 8:  # HTML → MD
+        from html_to_md import clean_html_to_md
+        inp = extra[0] if len(extra) > 0 else "input"
+        out = extra[1] if len(extra) > 1 else "output"
+        clean_html_to_md(inp, out)
+
+    elif idx == 9:  # 이미지 추출
         from extract_images import extract_all_images
         inp = extra[0] if len(extra) > 0 else "input"
         out = extra[1] if len(extra) > 1 else "output"
         extract_all_images(inp, out)
 
-    elif idx == 8:  # Markdown 병합
+    elif idx == 10:  # Markdown 병합
         from merge_markdown import merge_markdown_files
         inp = extra[0] if len(extra) > 0 else "output"
         out_file = extra[1] if len(extra) > 1 else "merged_all.md"
         merge_markdown_files(inp, out_file)
 
-    elif idx == 9:  # 이미지 경로 업데이트
+    elif idx == 11:  # 이미지 경로 업데이트
         from update_image_paths import update_all_markdown_files
         out = extra[0] if len(extra) > 0 else "output"
         update_all_markdown_files(out)
